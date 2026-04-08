@@ -1,0 +1,125 @@
+{
+  "name": "jwt-refresh",
+  "version": "0.1.0",
+  "description": "JWT refresh token rotation, race-condition prevention, reuse detection, and session management for Node.js.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "jwt",
+    "refresh-token",
+    "token-rotation",
+    "race-condition",
+    "authentication",
+    "session",
+    "typescript",
+    "redis",
+    "prisma"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./stores/memory": {
+      "types": "./dist/stores/MemoryTokenStore.d.ts",
+      "import": "./dist/stores/MemoryTokenStore.mjs",
+      "require": "./dist/stores/MemoryTokenStore.cjs"
+    },
+    "./stores/redis": {
+      "types": "./dist/stores/RedisTokenStore.d.ts",
+      "import": "./dist/stores/RedisTokenStore.mjs",
+      "require": "./dist/stores/RedisTokenStore.cjs"
+    },
+    "./stores/prisma": {
+      "types": "./dist/stores/PrismaTokenStore.d.ts",
+      "import": "./dist/stores/PrismaTokenStore.mjs",
+      "require": "./dist/stores/PrismaTokenStore.cjs"
+    },
+    "./stores/drizzle": {
+      "types": "./dist/stores/DrizzleTokenStore.d.ts",
+      "import": "./dist/stores/DrizzleTokenStore.mjs",
+      "require": "./dist/stores/DrizzleTokenStore.cjs"
+    },
+    "./integrations/express": {
+      "types": "./dist/integrations/express.d.ts",
+      "import": "./dist/integrations/express.mjs",
+      "require": "./dist/integrations/express.cjs"
+    },
+    "./integrations/fastify": {
+      "types": "./dist/integrations/fastify.d.ts",
+      "import": "./dist/integrations/fastify.mjs",
+      "require": "./dist/integrations/fastify.cjs"
+    },
+    "./integrations/nextjs": {
+      "types": "./dist/integrations/nextjs.d.ts",
+      "import": "./dist/integrations/nextjs.mjs",
+      "require": "./dist/integrations/nextjs.cjs"
+    },
+    "./integrations/nestjs": {
+      "types": "./dist/integrations/nestjs.d.ts",
+      "import": "./dist/integrations/nestjs.mjs",
+      "require": "./dist/integrations/nestjs.cjs"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.mjs",
+      "require": "./dist/testing/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist coverage .vitest",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "jsonwebtoken": ">=9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    },
+    "ioredis": {
+      "optional": true
+    },
+    "redis": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "cookie": "^1.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "ms": "^2.1.3"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "@types/cookie": "^0.6.0",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^24.6.0",
+    "@types/supertest": "^6.0.3",
+    "express": "^5.1.0",
+    "supertest": "^7.1.4",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
