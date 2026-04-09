@@ -310,6 +310,7 @@ npm run build
 
 - [API Reference](./docs/api.md)
 - [Architecture](./docs/architecture.md)
+- [Changelog](./CHANGELOG.md)
 - [Security Checklist](./docs/security-checklist.md)
 - [Comparison](./docs/comparison.md)
 - [Contributing](./CONTRIBUTING.md)
