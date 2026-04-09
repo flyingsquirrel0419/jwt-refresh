@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "JWT refresh token rotation, race-condition prevention, reuse detection, and session management for Node.js.",
   "license": "MIT",
+  "homepage": "https://github.com/flyingsquirrel0419/jwt-refresh#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flyingsquirrel0419/jwt-refresh.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flyingsquirrel0419/jwt-refresh/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

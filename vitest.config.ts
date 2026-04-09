@@ -8,7 +8,7 @@ export default defineConfig({
     coverage: {
       include: ['src/**/*.ts'],
       exclude: ['src/index.ts', 'src/types.ts', 'src/stores/BaseStore.ts', 'src/testing/index.ts'],
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'json-summary'],
     },
   },
 })

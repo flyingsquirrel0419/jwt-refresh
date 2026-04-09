@@ -1,41 +1,86 @@
-# jwt-refresh
+<!-- Logo placeholder: add ./logo.png and replace this comment with a centered image block later. -->
 
-<!-- Logo placeholder: add your project logo or banner here later. -->
+<h1 align="center">jwt-refresh</h1>
 
-> Refresh token rotation, race-condition protection, reuse detection, and session control for Node.js JWT flows.
+<p align="center">
+  <strong>The JWT refresh lifecycle toolkit that Node.js apps actually need.</strong><br>
+  <em>Refresh rotation, reuse detection, race-condition protection, and session control in one package.</em>
+</p>
 
-`jwt-refresh` packages the part most teams keep rebuilding badly: secure refresh-token handling after access tokens expire. It gives you one library for token issuance, refresh rotation, replay detection, session revocation, access-token blacklisting, and middleware-friendly request handling.
+<p align="center">
+  <img src="https://img.shields.io/badge/npm-unpublished-CB3837?logo=npm&logoColor=white" alt="npm unpublished">
+  <img src="https://img.shields.io/badge/downloads-unpublished-blue" alt="downloads unavailable">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-first-3178C6?logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <img src="https://img.shields.io/badge/Node.js-%E2%89%A5_18-339933?logo=nodedotjs&logoColor=white" alt="Node.js >= 18">
+  <img src="https://img.shields.io/badge/tests-64_passing-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/coverage-99.05%25-brightgreen" alt="coverage">
+  <a href="https://github.com/flyingsquirrel0419/jwt-refresh/actions/workflows/ci.yml"><img src="https://github.com/flyingsquirrel0419/jwt-refresh/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+</p>
 
-## Why this exists
+<p align="center">
+  <a href="#-quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="#-features">Features</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="./docs/api.md">API Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="./docs/security-checklist.md">Security</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="#-integrations">Integrations</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="./docs/comparison.md">Comparison</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+  <a href="./docs/architecture.md">Architecture</a>
+</p>
 
-Most JWT setups solve signing and verification, but leave the refresh lifecycle to application code. That gap creates three recurring failures:
+---
 
-- refresh endpoints become bespoke security code
-- concurrent refresh attempts log real users out
-- stolen refresh tokens are reused without clear detection or response
+## The Problem
 
-This package focuses on those failures directly.
+Every hand-rolled JWT stack eventually hits the same refresh wall:
 
-## Features
-
-- Refresh-token rotation with per-session tracking
-- Short grace window for simultaneous refresh bursts to avoid false theft detection
-- Actual reuse detection for replayed rotated tokens
-- Access-token blacklisting for immediate revocation
-- Memory store for local development and tests
-- Redis, Prisma, and Drizzle adapter surfaces for production storage
-- Express-friendly middleware out of the box
-- ESM, CJS, and generated TypeScript declarations
-
-## Installation
-
-```bash
-npm install jwt-refresh jsonwebtoken
+```text
+jsonwebtoken only         --> signs and verifies tokens, but leaves refresh flows to app code
+custom refresh endpoint   --> works until rotation, replay detection, and logout rules pile up
+multiple browser tabs     --> all try to refresh at once, then users get logged out by accident
+stolen refresh token      --> gets replayed without a clear security response
 ```
 
-If you want Redis-backed storage, install your preferred Redis client separately and wire it into `RedisTokenStore`.
+The failure mode is almost always the same: a team solves "issue access tokens" and underestimates "manage the refresh lifecycle safely".
 
-## Quick start
+## The Solution
+
+**jwt-refresh** packages the refresh lifecycle as a first-class system:
+
+```text
+client request
+  -> access token verification
+  -> refresh cookie extraction
+  -> refresh token verification
+  -> session lookup
+  -> race-condition guard
+  -> rotation or replay decision
+  -> blacklist / revoke / event emission
+  -> new access token + refresh token
+```
+
+Instead of sprinkling refresh logic across routes, services, and middleware, you get one manager that owns:
+
+- refresh token rotation
+- reuse detection
+- legitimate race handling
+- access-token blacklisting
+- session revocation
+- framework-friendly handlers
+
+---
+
+## Quick Start
+
+### Install
+
+`jwt-refresh` is not published under a safe npm name yet. For now, install from GitHub:
+
+```bash
+npm install github:flyingsquirrel0419/jwt-refresh jsonwebtoken
+```
+
+### Minimal example
 
 ```ts
 import express from 'express'
@@ -59,8 +104,8 @@ const jwt = new JwtManager({
   cookie: {
     name: 'refreshToken',
     httpOnly: true,
-    sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
     path: '/auth',
   },
   refreshBuffer: 120,
@@ -87,65 +132,117 @@ app.post('/auth/refresh', jwt.refreshHandler())
 app.get('/api/me', jwt.authenticate(), (req, res) => res.json(req.user))
 ```
 
-## What happens during refresh
+### What refresh handling looks like
 
 ```text
-client sends refresh cookie
-  -> refresh token signature is verified
-  -> stored session is loaded by token id
-  -> revoked rotation tokens inside the race window return 409 retry
-  -> replayed rotated tokens trigger reuse detection and revoke all sessions
-  -> a new access token and refresh token are issued
+POST /auth/refresh
+  -> reads refresh cookie
+  -> verifies JWT signature and claims
+  -> checks stored session state
+  -> returns 409 retry for a legitimate in-flight race
+  -> revokes all sessions on replayed rotated tokens
+  -> rotates refresh token and returns a fresh access token
 ```
 
-## Error model
+---
 
-`jwt-refresh` responds with JSON errors from its middleware and handlers:
+## Features
 
-```json
-{
-  "error": "Refresh token reuse detected",
-  "code": "REFRESH_TOKEN_REUSED"
-}
-```
+### Token lifecycle
 
-Typical status codes:
+| Feature | What it does |
+|---|---|
+| **Refresh token rotation** | Issues a new refresh token on successful refresh and revokes the previous session |
+| **Absolute expiry** | Stops endless refresh chains and forces re-authentication after a fixed window |
+| **Access-token blacklisting** | Rejects still-valid access tokens immediately after sensitive events |
+| **Cookie-aware refresh flow** | Reads and writes refresh cookies without route boilerplate |
 
-- `401` for missing, invalid, revoked, or replayed tokens
-- `409` for a legitimate refresh race that should be retried with the updated cookie
+### Security
 
-## Session management
+| Feature | What it does |
+|---|---|
+| **Reuse detection** | Detects replayed rotated refresh tokens and revokes all active sessions for the user |
+| **Race-condition protection** | Distinguishes a real replay from a legitimate multi-request refresh burst |
+| **Session-level revocation** | Revokes one device, the current device, or all devices |
+| **Security events** | Emits `token:reuse-detected`, `token:revoked`, and refresh-related events |
+
+### Developer experience
+
+| Feature | What it does |
+|---|---|
+| **Typed payloads** | `JwtManager<TPayload>` preserves your access-token payload type |
+| **Framework helpers** | Express-first handlers plus Fastify, Next.js, and NestJS adapters |
+| **Multiple store adapters** | Memory store for tests, plus Redis, Prisma, and Drizzle adapter surfaces |
+| **ESM + CJS** | Ships generated declaration files and dual module output |
+
+### Quality
+
+| Feature | What it does |
+|---|---|
+| **64 passing tests** | Integration, security, and deep unit coverage across core and adapter branches |
+| **99.05% line coverage** | High confidence in the refresh, security, and adapter control flow |
+| **GitHub Actions CI** | Lint, test, coverage, and build on push and pull request |
+
+---
+
+## Integrations
+
+`jwt-refresh` is designed to sit inside the web stack you already use:
+
+| Framework | Integration |
+|---|---|
+| **Express** | `jwt.authenticate()` and `jwt.refreshHandler()` as route-ready handlers |
+| **Fastify** | `createFastifyHandler(jwt, 'authenticate' | 'refresh')` bridge |
+| **Next.js App Router** | `verifyNextRequest()` and `createNextRefreshHandler()` helpers |
+| **NestJS** | `createNestGuard()` and `getJwtUser()` for guard-style integration |
+
+<details>
+<summary><b>Express example</b></summary>
 
 ```ts
-await jwt.revokeSession(userId, sessionId)
-await jwt.revokeAllSessions(userId)
-await jwt.blacklistToken(accessToken, { reason: 'password_changed' })
+import express from 'express'
+import { JwtManager, MemoryTokenStore } from 'jwt-refresh'
 
-const sessions = await jwt.getSessions(userId)
+const app = express()
+const jwt = new JwtManager({
+  access: { secret: process.env.JWT_SECRET!, ttl: '15m' },
+  refresh: { secret: process.env.REFRESH_SECRET!, ttl: '7d', rotation: true, reuseDetection: true },
+  store: new MemoryTokenStore(),
+})
+
+app.post('/auth/refresh', jwt.refreshHandler())
+app.get('/api/me', jwt.authenticate(), (req, res) => res.json(req.user))
 ```
 
-Each session records:
+</details>
 
-- creation time
-- last usage time
-- device metadata
-- parent token id for rotation lineage
-- revoke status and revoke reason
+<details>
+<summary><b>Next.js App Router example</b></summary>
 
-## Security checklist
+```ts
+import { createNextRefreshHandler } from 'jwt-refresh/integrations/nextjs'
 
-Recommended defaults for production:
+export const POST = createNextRefreshHandler(jwt)
+```
 
-- `refresh.rotation: true`
-- `refresh.reuseDetection: true`
-- `refresh.absoluteExpiry: '90d'`
-- `cookie.httpOnly: true`
-- `cookie.sameSite: 'strict'`
-- `cookie.secure: true` on HTTPS deployments
+</details>
 
-See [docs/security-checklist.md](/root/jwt-refresh/docs/security-checklist.md) for the full checklist.
+<details>
+<summary><b>NestJS example</b></summary>
 
-## API overview
+```ts
+import { createNestGuard } from 'jwt-refresh/integrations/nestjs'
+
+const JwtAuthGuard = createNestGuard(jwt)
+```
+
+</details>
+
+---
+
+## API
+
+The public API is intentionally compact:
 
 ```ts
 class JwtManager<TPayload extends AccessTokenPayload = AccessTokenPayload> {
@@ -164,45 +261,60 @@ class JwtManager<TPayload extends AccessTokenPayload = AccessTokenPayload> {
 }
 ```
 
-## Package structure
+See [API Reference](./docs/api.md) for the full option and method surface.
 
-```text
-src/
-  core/            manager, issuer, verifier, refresh coordinator
-  middleware/      auth and refresh handlers
-  mutex/           in-memory and redlock-compatible mutex adapters
-  rotation/        rotation and reuse-detection logic
-  session/         session and blacklist services
-  stores/          memory, Redis, Prisma, and Drizzle adapters
-  integrations/    express, fastify, nextjs, nestjs helpers
-  testing/         test exports
-tests/
-  integration/     end-to-end request flow tests
-  security/        race, replay, and expiry tests
-```
+---
 
-## Examples
+## Security Defaults
 
-- [Express example](/root/jwt-refresh/examples/express-complete/server.ts)
-- [Next.js App Router example](/root/jwt-refresh/examples/nextjs-app-router/route.ts)
-- [NestJS example](/root/jwt-refresh/examples/nestjs/auth.controller.ts)
+Recommended production defaults:
+
+- `refresh.rotation: true`
+- `refresh.reuseDetection: true`
+- `refresh.absoluteExpiry: '90d'`
+- `cookie.httpOnly: true`
+- `cookie.sameSite: 'strict'`
+- `cookie.secure: true` in production
+
+See the full [security checklist](./docs/security-checklist.md).
+
+---
+
+## Comparison
+
+`jwt-refresh` is not trying to replace low-level JWT libraries. It sits above them and solves the lifecycle problems they intentionally leave to application code.
+
+| Package | Signs JWTs | Rotation | Reuse detection | Race handling | Session revoke | Access blacklist |
+|---|---:|---:|---:|---:|---:|---:|
+| `jwt-refresh` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `jsonwebtoken` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `jose` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `passport-jwt` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `@nestjs/jwt` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+More detail: [Comparison](./docs/comparison.md)
+
+---
 
 ## Development
 
 ```bash
 npm install
+npm run lint
 npm test
+npm run coverage
 npm run build
 ```
 
-## Contributing
+## Repository docs
 
-See [CONTRIBUTING.md](/root/jwt-refresh/CONTRIBUTING.md).
-
-## Security policy
-
-See [SECURITY.md](/root/jwt-refresh/SECURITY.md).
+- [API Reference](./docs/api.md)
+- [Architecture](./docs/architecture.md)
+- [Security Checklist](./docs/security-checklist.md)
+- [Comparison](./docs/comparison.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
 
 ## License
 
-[MIT](/root/jwt-refresh/LICENSE)
+[MIT](./LICENSE)
