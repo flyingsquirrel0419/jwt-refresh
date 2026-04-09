@@ -8,13 +8,13 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/npm-unpublished-CB3837?logo=npm&logoColor=white" alt="npm unpublished">
-  <img src="https://img.shields.io/badge/downloads-unpublished-blue" alt="downloads unavailable">
+  <a href="https://www.npmjs.com/package/@flyingsquirrel0419/jwt-refresh"><img src="https://img.shields.io/npm/v/%40flyingsquirrel0419%2Fjwt-refresh?logo=npm&logoColor=white" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/@flyingsquirrel0419/jwt-refresh"><img src="https://img.shields.io/npm/dm/%40flyingsquirrel0419%2Fjwt-refresh?logo=npm&logoColor=white" alt="npm downloads"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-first-3178C6?logo=typescript&logoColor=white" alt="TypeScript"></a>
   <img src="https://img.shields.io/badge/Node.js-%E2%89%A5_18-339933?logo=nodedotjs&logoColor=white" alt="Node.js >= 18">
   <img src="https://img.shields.io/badge/tests-64_passing-brightgreen" alt="tests">
-  <img src="https://img.shields.io/badge/coverage-99.05%25-brightgreen" alt="coverage">
+  <a href="https://coveralls.io/github/flyingsquirrel0419/jwt-refresh?branch=main"><img src="https://coveralls.io/repos/github/flyingsquirrel0419/jwt-refresh/badge.svg?branch=main" alt="coverage"></a>
   <a href="https://github.com/flyingsquirrel0419/jwt-refresh/actions/workflows/ci.yml"><img src="https://github.com/flyingsquirrel0419/jwt-refresh/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
 </p>
 
@@ -74,17 +74,17 @@ Instead of sprinkling refresh logic across routes, services, and middleware, you
 
 ### Install
 
-`jwt-refresh` is not published under a safe npm name yet. For now, install from GitHub:
+Install the published package from npm:
 
 ```bash
-npm install github:flyingsquirrel0419/jwt-refresh jsonwebtoken
+npm install @flyingsquirrel0419/jwt-refresh jsonwebtoken
 ```
 
 ### Minimal example
 
 ```ts
 import express from 'express'
-import { JwtManager, MemoryTokenStore } from 'jwt-refresh'
+import { JwtManager, MemoryTokenStore } from '@flyingsquirrel0419/jwt-refresh'
 
 const app = express()
 app.use(express.json())
@@ -201,7 +201,7 @@ POST /auth/refresh
 
 ```ts
 import express from 'express'
-import { JwtManager, MemoryTokenStore } from 'jwt-refresh'
+import { JwtManager, MemoryTokenStore } from '@flyingsquirrel0419/jwt-refresh'
 
 const app = express()
 const jwt = new JwtManager({
@@ -220,7 +220,7 @@ app.get('/api/me', jwt.authenticate(), (req, res) => res.json(req.user))
 <summary><b>Next.js App Router example</b></summary>
 
 ```ts
-import { createNextRefreshHandler } from 'jwt-refresh/integrations/nextjs'
+import { createNextRefreshHandler } from '@flyingsquirrel0419/jwt-refresh/integrations/nextjs'
 
 export const POST = createNextRefreshHandler(jwt)
 ```
@@ -231,7 +231,7 @@ export const POST = createNextRefreshHandler(jwt)
 <summary><b>NestJS example</b></summary>
 
 ```ts
-import { createNestGuard } from 'jwt-refresh/integrations/nestjs'
+import { createNestGuard } from '@flyingsquirrel0419/jwt-refresh/integrations/nestjs'
 
 const JwtAuthGuard = createNestGuard(jwt)
 ```

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `README.md` was rewritten in a `layercache`-style hero layout with clearer package positioning, badge coverage, and navigation for Quick Start, security, integrations, and API docs.
+- Package metadata and installation docs now target the publishable scoped npm name `@flyingsquirrel0419/jwt-refresh`.
 
 ### Added
 - `CHANGELOG.md` to track release history in a stable format.
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/comparison.md` to position `jwt-refresh` against lower-level JWT libraries and framework helpers.
 - GitHub Actions CI workflow for `lint`, `test`, `coverage`, and `build` on Node.js 18 and 20.
 - `json-summary` coverage output so coverage artifacts can be consumed by CI tooling in addition to text and lcov reports.
+- Coveralls coverage upload from GitHub Actions using the generated `coverage/lcov.info` report.
 
 ### Removed
 - `Jwt-plan.md` now that the implementation has been completed and the repository docs are the source of truth.
