@@ -12,6 +12,8 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -43,10 +45,8 @@ jobs:
         run: npm run coverage
 
       - name: Coveralls
-        if: matrix.node == 20 && secrets.COVERALLS_REPO_TOKEN != ''
+        if: matrix.node == 20 && env.COVERALLS_REPO_TOKEN != ''
         uses: coverallsapp/github-action@v2
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: coverage/lcov.info
